@@ -2,6 +2,8 @@
 pragma solidity ^0.8.13;
 
 //@note using openzepplin's version of erc4626 because it is puts more checks
+//@todo update converToShare and subtract the totalAsset() by the reward amount deposited
+//@todo in convertToAsset change totalAsset to reward amount
 
 import "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol";
 import "lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol";
@@ -58,7 +60,7 @@ contract Staking is ERC4626,Ownable2Step{
     }
 
     function mint(uint256 shares, address receiver) public override returns (uint256){
-        
+
         if(uint64(deploymentTime + timeConstant) < uint64(block.timestamp)) revert timePassed();
         snapshot[receiver] = uint64(block.timestamp);
         return(super.mint(shares,receiver));
@@ -71,6 +73,19 @@ contract Staking is ERC4626,Ownable2Step{
 
     //@note:Updating the convertoAssets internal function
     //@note: The actual withdraw or redeem will cal convertToAsset
+
+
+    function _convertToShares(uint256 assets, Math.Rounding rounding) internal view override returns (uint256 shares){
+        uint256 supply = totalSupply();
+        uint256 totalAsset = totalAssets() - rewardAmount;
+        return
+            (assets == 0 || supply == 0)
+                ? _initialConvertToShares(assets, rounding)
+                : assets.mulDiv(supply, totalAsset, rounding);
+    }
+    }
+
+
     function _convertToAssets(address _owner,uint256 shares, Math.Rounding rounding) internal view override returns (uint256 assets){
         uint64 depositTime = snapshot[_owner];
 
