@@ -123,11 +123,15 @@ contract Staking is ERC4626,Ownable2Step{
             factor = decayingFactor3;
 
         }
+        console.log(factor);
+        console.log(depositorShares);
 
         uint256 _denominator = (10**decimals()) * denominator;
 
         uint256 rewardPool = (rewardAmount.mulDiv(factor,_denominator,rounding));
-
+        console.log(rewardPool);
+        console.log(supply);
+        console.log(rewardAmount);
     //@Note: multiplying by the decimals to decimal adjust the reward
         return
             (supply == 0 || depositorShares == 0)

@@ -84,18 +84,21 @@ contract CounterTest is Test {
 
         staking.redeem(staking.balanceOf(depositor1), depositor1, depositor1);
         assertEq(mock.balanceOf(depositor1),1040 * 10**18);
+        vm.stopPrank();
     }
 
 
     function test_redeem_depositor2() public returns(uint256){
-        test_deposit_depositor1();
-        test_deposit_depositor2();
+        // test_deposit_depositor1();
+        // test_deposit_depositor2();
+        test_redeem_depositor1();
+
         vm.startPrank(depositor2);
 
         vm.warp(staking.deploymentTime() + (3*staking.timeConstant()));
 
         staking.redeem(staking.balanceOf(depositor2), depositor2, depositor2);
-        assertEq(mock.balanceOf(depositor2),1460 * 10**18);
+        assertEq(mock.balanceOf(depositor2),4460 * 10**18);
     }
 
 }
