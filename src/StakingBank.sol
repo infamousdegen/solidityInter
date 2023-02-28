@@ -17,6 +17,16 @@ contract Staking is ERC4626,Ownable2Step{
 
     IERC20 private immutable baseToken;
 
+
+    struct SUBPOOL {
+        uint256 pool1;
+        uint256 pool2;
+        uint256 pool3;
+    }
+
+    SUBPOOL subPool;
+    
+
     //@todo I can reduce this to a small time unit
     uint64 immutable public timeConstant;
     //@note time when the contract was deployed
@@ -84,19 +94,24 @@ contract Staking is ERC4626,Ownable2Step{
 
     //@Note: wont' break the interface because the reward amount is not minted as share (previewWithdraw)
 
-    function withdraw(uint256 assets,address receiver,address owner) public override checkWithdraw poke returns(uint256){
+    function withdraw(uint256 assets,address receiver,address _owner) public override checkWithdraw poke returns(uint256){
 
-            return(super.withdraw(assets,receiver,owner));
+            return(super.withdraw(assets,receiver,_owner));
     }
 
     //@Note: wont' break the interface because the reward amount is not minted as share (previewRedeem)
-    function redeem(uint256 shares,address receiver,address owner) public override checkWithdraw poke returns (uint256){
-        return(super.redeem(shares,receiver,owner));
+    function redeem(uint256 shares,address receiver,address _owner) public override checkWithdraw poke returns (uint256){
+        return(super.redeem(shares,receiver,_owner));
     }
 
        //@note: syncrewards has to called manually after transferring the tokens
     function syncRewards() public {
         rewardAmount = baseToken.balanceOf(address(this)) - totalDeposit;
+        subPool.pool1 = decayingFactor1 * rewardAmount;
+        subPool.pool2 = decayingFactor2 * rewardAmount;
+        subPool.pool3 = decayingFactor3 * rewardAmount;
+
+
 
     }
 
@@ -107,36 +122,33 @@ contract Staking is ERC4626,Ownable2Step{
     function calculateRewards(address _depositor,Math.Rounding rounding) public view returns(uint256 rewards){
         uint256 supply = totalSupply();
         uint256 depositorShares = balanceOf(_depositor);
-        uint256 factor;
+        uint256 subpool;
 
         //No need to check if it is less than 2T because without 2T you cant deposit
 
         if (uint64(block.timestamp) < uint64(deploymentTime + (3*timeConstant))){
-            factor = decayingFactor1;
+            subpool = subPool.pool1;
         }
 
         else if(uint64(block.timestamp) < uint64(deploymentTime + (4*timeConstant))){
-            factor = decayingFactor2;
+            subpool = subPool.pool2;
         }
 
         else {
-            factor = decayingFactor3;
+            subpool = subPool.pool3;
 
         }
-        console.log(factor);
+        console.log(subpool);
         console.log(depositorShares);
 
-        uint256 _denominator = (10**decimals()) * denominator;
 
-        uint256 rewardPool = (rewardAmount.mulDiv(factor,_denominator,rounding));
-        console.log(rewardPool);
         console.log(supply);
         console.log(rewardAmount);
     //@Note: multiplying by the decimals to decimal adjust the reward
         return
             (supply == 0 || depositorShares == 0)
             ? 0
-            : (depositorShares.mulDiv(rewardPool,supply,rounding) * 10 **decimals());
+            : (depositorShares.mulDiv(subpool,supply,rounding) * 10 **decimals());
     }
 
 
@@ -167,11 +179,11 @@ contract Staking is ERC4626,Ownable2Step{
 
 
 
-    function _withdraw(address caller,address receiver,address owner,uint256 assets,uint256 shares) internal override{
+    function _withdraw(address caller,address receiver,address _owner,uint256 assets,uint256 shares) internal override{
         totalDeposit = totalDeposit - assets;
-        assets = assets + calculateRewards(owner,Math.Rounding.Down);
+        assets = assets + calculateRewards(_owner,Math.Rounding.Down);
 
-        super._withdraw(caller,receiver,owner,assets,shares);
+        super._withdraw(caller,receiver,_owner,assets,shares);
     }
 
     //@Note: Updating Total Deposit inside here because both deposit and mint will call this function in the end
