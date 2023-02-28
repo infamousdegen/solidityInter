@@ -9,6 +9,8 @@ import "lib/openzeppelin-contracts/contracts/token/ERC20/extensions/ERC4626.sol"
 import "lib/openzeppelin-contracts/contracts/access/Ownable2Step.sol";
 import "lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
+import "forge-std/console.sol";
+
 
 contract Staking is ERC4626,Ownable2Step{
     using Math for uint256;
@@ -92,9 +94,6 @@ contract Staking is ERC4626,Ownable2Step{
         return(super.redeem(shares,receiver,owner));
     }
 
-
-       //@note: Direct of tokens transfer to the the contract will be considered for rewards
-
        //@note: syncrewards has to called manually after transferring the tokens
     function syncRewards() public {
         rewardAmount = baseToken.balanceOf(address(this)) - totalDeposit;
@@ -109,28 +108,31 @@ contract Staking is ERC4626,Ownable2Step{
         uint256 supply = totalSupply();
         uint256 depositorShares = balanceOf(_depositor);
         uint256 factor;
-        
-        if(uint64(block.timestamp) > uint64(deploymentTime+(2 * timeConstant))){
-            if(uint64(block.timestamp) > uint64(deploymentTime + (3 * timeConstant))){
-                if(uint64(block.timestamp) > uint64(deploymentTime + (4 * timeConstant))){
-                    factor = decayingFactor3;
-                }
-                else{
-                    factor = decayingFactor2;
-                }
-            }
-            else{
-                factor = decayingFactor1;
-            }
+
+        //No need to check if it is less than 2T because without 2T you cant deposit
+
+        if (uint64(block.timestamp) < uint64(deploymentTime + (3*timeConstant))){
+            factor = decayingFactor1;
         }
 
-        uint256 _denominator = decimals() * denominator;
-        uint256 rewardPool = rewardAmount.mulDiv(factor,_denominator,rounding);
+        else if(uint64(block.timestamp) < uint64(deploymentTime + (4*timeConstant))){
+            factor = decayingFactor2;
+        }
 
+        else {
+            factor = decayingFactor3;
+
+        }
+
+        uint256 _denominator = (10**decimals()) * denominator;
+
+        uint256 rewardPool = (rewardAmount.mulDiv(factor,_denominator,rounding));
+
+    //@Note: multiplying by the decimals to decimal adjust the reward
         return
             (supply == 0 || depositorShares == 0)
             ? 0
-            : depositorShares.mulDiv(rewardPool,supply,rounding);
+            : (depositorShares.mulDiv(rewardPool,supply,rounding) * 10 **decimals());
     }
 
 
