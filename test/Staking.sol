@@ -27,7 +27,7 @@ contract CounterTest is Test {
         mock.mint(depositor1, 1000 *10**18);
         mock.mint(depositor2, 4000 * 10**18);
 
-        staking = new Staking(mock,0);
+        staking = new Staking(mock,86400);
         mock.transfer(address(staking), 1000 * 10**18);
         vm.stopPrank();
 
@@ -42,6 +42,7 @@ contract CounterTest is Test {
 
     /**  @dev  Test first depositor shareBalance*/
     function test_deposit_depositor1() public {
+
         vm.startPrank(depositor1);
         uint256 shares = staking.deposit(1000 *10**18, depositor1);
         vm.stopPrank();
@@ -64,4 +65,15 @@ contract CounterTest is Test {
         staking.syncRewards();
         assertEq(staking.rewardAmount(),1000 * 10**18);
     }
+
+    function test_preview_redeem() public {
+
+        test_deposit_depositor1();
+        test_deposit_depositor2();
+        vm.startPrank(depositor1);
+        assertEq(staking.previewRedeem(staking.balanceOf(depositor1)),1000*10**18);    
+        assertEq(staking.previewRedeem(staking.balanceOf(depositor2)),4000*10**18);
+        }
+
+
 }

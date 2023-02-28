@@ -41,7 +41,7 @@ contract Staking is ERC4626,Ownable2Step{
 //@Note: Gas efficient to call this inline but including it as a modifier for reaadeability
     modifier checkWithdraw() {
         //@audit test this 
-        if(uint64(block.timestamp + timeConstant) > uint64(block.timestamp) && uint64(block.timestamp) < uint64(block.timestamp + (2 * timeConstant))) revert withdrawLocked();
+        // if(uint64(block.timestamp + timeConstant) > uint64(block.timestamp) && uint64(block.timestamp) < uint64(block.timestamp + (2 * timeConstant))) revert withdrawLocked();
         _;
     }
 
