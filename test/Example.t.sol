@@ -82,7 +82,6 @@ contract StakingTestExample is Test {
         vm.startPrank(owner);
         vm.warp(staking.deploymentTime() + (4*staking.timeConstant()) +1);
         staking.ownerWithdraw(address(owner));
-        assertEq(mock.balanceOf(owner),500 * 10**18);
 
     }
 
@@ -92,6 +91,7 @@ contract StakingTestExample is Test {
         test_redeem_depositor1();
         test_redeem_depositor2();
         test_owner_withdraw();
+        assertEq(mock.balanceOf(owner),500 * 10**18);
 
     }
 
