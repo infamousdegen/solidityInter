@@ -100,8 +100,8 @@ contract Staking is ERC4626,Ownable2Step{
     //@Gas: Gas efficient to use inline revert statement than modifiers;
 
     function withdraw(uint256 assets,address receiver,address _owner) public override returns(uint256){
-        if(uint64(block.timestamp) > uint64(deploymentTime + timeConstant) 
-        && uint64(block.timestamp) < uint64(deploymentTime + (2 * timeConstant))) 
+        if(uint64(block.timestamp) > uint64(timeConstant0) 
+        && uint64(block.timestamp) < uint64(timeConstant1)) 
         revert withdrawLocked();
 
 
@@ -113,8 +113,8 @@ contract Staking is ERC4626,Ownable2Step{
 
     //@Gas: Gas efficient to use inline revert statement than modifiers;
     function redeem(uint256 shares,address receiver,address _owner) public override returns (uint256){
-        if(uint64(block.timestamp) > uint64(deploymentTime + timeConstant) 
-        && uint64(block.timestamp) < uint64(deploymentTime + (2 * timeConstant))) 
+        if(uint64(block.timestamp) > uint64(timeConstant0) 
+        && uint64(block.timestamp) < uint64(timeConstant1)) 
         revert withdrawLocked();
 
         syncRewards();
@@ -149,6 +149,8 @@ contract Staking is ERC4626,Ownable2Step{
         uint256 totalReward;
 
         //@note dont have to calculate any of these if block.timestamp is not greater than 2T
+        console.log(timeConstant1);
+        console.log(block.timestamp);
 
         if(uint64(block.timestamp) > uint64(timeConstant1)){
 

@@ -130,7 +130,7 @@ contract StakingTest is Test {
 
     
 
-    function test_redeem_depositor1() public returns(uint256){
+    function test_redeem_depositor1() public {
         test_deposit_depositor1();
         test_deposit_depositor2();
         vm.startPrank(depositor1);
@@ -144,7 +144,7 @@ contract StakingTest is Test {
     }
 
 
-    function test_redeem_depositor2() public returns(uint256){
+    function test_redeem_depositor2() public {
 
         test_redeem_depositor1();
 
@@ -177,7 +177,7 @@ contract StakingTest is Test {
         staking.ownerWithdraw(owner);
     }
 
-    function test_withdraw_depositor2() public returns(uint256){
+    function test_withdraw_depositor2() public {
 
         test_redeem_depositor1();
 
@@ -189,6 +189,15 @@ contract StakingTest is Test {
 
         assertEq(mock.balanceOf(depositor2),4460 * 10**18);
     }
+
+    function test_withdraw_beforeLock() public {
+        vm.warp(staking.deploymentTime() + 1);
+        test_deposit_depositor1();
+        test_deposit_depositor2();
+        vm.prank(depositor2);
+        staking.withdraw(4000 * 10 **18, depositor2, depositor2);
+        
+   }
 
 
 
